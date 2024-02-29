@@ -151,10 +151,3 @@ class GitHub_Api:
                         self.parents.pop()
 
 
-if __name__ == "__main__":
-    gh = GitHub_Api(key="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")
-    gh.get_repository('lys0512/seckill')
-    for dep in gh.get_dependencies('edsu', 'xkcd2347', 2):
-        indent = dep['level'] * "    "
-        package = dep['repository']['nameWithOwner']
-        print(indent + package)
