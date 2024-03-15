@@ -1,3 +1,5 @@
+import logging
+
 from src.query_github_api import GitHub_Api
 
 """
@@ -17,7 +19,10 @@ def convert_api_response(repo_info, releases_info, dependency_info):
     # convert dependency info
     dependencies = []
     for dependency in dependency_info:
-        dependencies.append(dependency['repository']['nameWithOwner'])
+        if dependency['repository'] is not None:
+            dependencies.append(dependency['repository']['nameWithOwner'])
+        else:
+            dependencies.append(dependency['packageName'])
 
     # convert repo info
     data = {
@@ -54,12 +59,11 @@ def convert_api_response(repo_info, releases_info, dependency_info):
     - full_name (str): The full name of the repo. It should look like 'owner/repo_name'
 """
 def assemble_api_response(full_name):
-    client = GitHub_Api(key="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")
-    repo_info = client.search_repositories(full_name)  # TODO: change to another better API
-    if repo_info['total_count'] == 0:
-        print(f"Cannot find repo: {full_name}")
+    client = GitHub_Api()
+    repo_info = client.get_repo_info(full_name)
+    if repo_info is None:
+        logging.warning(f"Cannot find repo: {full_name}")
         return None
-    repo_info = repo_info['items'][0]
     releases_info = client.get_releases(full_name)
     dependency_info = client.get_dependencies(repo_info['owner']['login'], repo_info['name'], 1)
 
@@ -69,4 +73,4 @@ def assemble_api_response(full_name):
 
 
 if __name__ == "__main__":
-    assemble_api_response('edsu/xkcd2347')
+    assemble_api_response('kitao/pyxel')
