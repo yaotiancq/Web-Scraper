@@ -121,6 +121,7 @@ celerybeat.pid
 
 # Environments
 config.ini
+.env
 .venv
 env/
 venv/
