@@ -59,7 +59,7 @@ def test_insert():
           "pushed_at": example_time, "owner_name": "dansuh171", "releases": "releases", "token": "token"}
     data = [d1, d2]
 
-    connection = DatabaseManager('127.0.0.1', 27017)
+    connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
     connection.insert(data)
     connection.insert([d3])
