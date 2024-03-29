@@ -8,12 +8,6 @@ from src.json_encoder import JSONEncoder
 app = Flask(__name__)
 
 
-@app.route('/test')
-def test():
-    filename = '/Users/luoyisu/Downloads/APP/echarts-5.5.0/dist/test.json'
-    return send_file(filename, mimetype='application/json')
-
-
 @app.route('/get_repository')
 def get_repository():
     full_name = request.args.get('full_name')
