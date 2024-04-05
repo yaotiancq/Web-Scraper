@@ -17,12 +17,17 @@ def convert_api_response(repo_info, releases_info, dependency_info):
         releases.append(temp)
 
     # convert dependency info
-    dependencies = []
+    # de-duplicate by using set()
+    dependencies = set()
     for dependency in dependency_info:
         if dependency['repository'] is not None:
-            dependencies.append(dependency['repository']['nameWithOwner'])
+            dependency_id = dependency['repository']['nameWithOwner']
         else:
-            dependencies.append(dependency['packageName'])
+            dependency_id = dependency['packageName']
+
+        dependencies.add(dependency_id)
+
+    dependencies = list(dependencies)
 
     # convert repo info
     data = {

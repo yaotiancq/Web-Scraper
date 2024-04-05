@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>GitHub Web Scrapper</title>
+    <title>GitHub Web Scraper</title>
     <script src="echarts.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
@@ -10,15 +10,16 @@
   </head>
   <body>
     <style>
-      #main,
       html,
       body {
         width: 100%;
+        height: 100%;
         margin: 0;
         padding: 0;
       }
       #main {
-        height: 1200px;
+        height: 100%;
+        overflow: auto;
       }
       .top-bar {
         width: 100%;
@@ -37,7 +38,9 @@
         cursor: pointer;
       }
     </style>
-    <div class="top-bar">GitHub Web Scrapper</div>
+    <div class="top-bar">
+      <span onclick="window.location.href='home.html';" style="cursor:pointer;">GitHub Web Scraper</span>
+    </div>
     <div class="back-arrow" onclick="history.back();"><i class="fas fa-arrow-left"></i></div>
     <div id="main"></div>
     <script type="text/javascript">
@@ -53,14 +56,14 @@
       myChart.showLoading();
       $.get(ROOT_PATH + '/get_dependency', { full_name: "edsu/xkcd2347" }, function (data) {
         myChart.hideLoading();
-        processNewData(data, '');
         myChart.setOption(
           (option = {
             tooltip: {
               trigger: 'item',
               triggerOn: 'mousemove',
               formatter: function (params) {
-                return 'License: ' + (params.data.project_license ? params.data.project_license : 'None') 
+                return 'Full Name: ' + (params.data.full_name ? params.data.full_name : 'None') 
+                      + '<br>License: ' + (params.data.project_license ? params.data.project_license : 'None') 
                       + '<br>Last Update: ' + (params.data.updated_at ? params.data.updated_at : 'None');
               }
             },
@@ -70,12 +73,13 @@
                 data: [data],
                 left: '2%',
                 right: '2%',
-                top: '20%',
-                bottom: '20%',
+                top: '10%',
+                bottom: '15%',
                 symbol: 'emptyCircle',
                 symbolSize: 15,
                 orient: 'vertical',
                 expandAndCollapse: true,
+                initialTreeDepth: -1,
                 label: {
                   position: 'top',
                   rotate: -90,
@@ -98,10 +102,10 @@
         );
 
         myChart.on('click', function (params) {
-            get_repo_info(params, 'click');
+            get_repo_info(params);
         });
 
-        function get_repo_info(params, eventType) {
+        function get_repo_info(params) {
             if (params.componentType === 'series' && params.seriesType === 'tree') {
                 var nodeName = params.data.full_name;
 
@@ -114,8 +118,6 @@
                     var rootNode = option.series[0].data[0];
 
                     params.data.apiCalled = true;
-
-                    processNewData(newData, params.data.name || '');
                     
                     replaceCurrentNodeData(params.data, newData);
 
@@ -128,36 +130,18 @@
             }
         }
 
-        function processNewData(node, parentName) {
-            if (!node) return;
-            var originalName = node.name;
-            node.name = parentName ? parentName + ':' + originalName : originalName;
-            node.label = {
-                show: true,
-                formatter: function(params) {
-                    return originalName;
-                }
-            };
-            // if (node.children && node.children.length > 0) {
-            //     node.children.forEach(function(childNode) {
-            //         processNewData(childNode, node.name);
-            //     });
-            // }
-        }
 
         // DFS
         function replaceCurrentNodeData(targetNodeData, newData) {
             var rootNode = option.series[0].data[0];
 
             function replaceNode(node, targetNodeData, newData) {
-                if (node.children) {
+                if (node.uuid === targetNodeData.uuid) {
+                    // Replace node data
+                    Object.assign(node, newData);
+                    return true; 
+                } else if (node.children) {
                     for (let i = 0; i < node.children.length; i++) {
-                        // If the target node is found, replace it
-                        if (node.children[i].full_name === targetNodeData.full_name) {
-                            node.children[i] = newData;
-                            return true;
-                        }
-                        // Otherwise, continue searching in the child nodes of the current node
                         if (replaceNode(node.children[i], targetNodeData, newData)) {
                             return true;
                         }
