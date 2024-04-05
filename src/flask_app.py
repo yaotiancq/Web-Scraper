@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from flask import Flask, jsonify, request, make_response, send_file
 
@@ -14,11 +15,65 @@ def get_repository():
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
     query = {"full_name": full_name}
-    result = list(connection.find(query).limit(1))
+    result = list(connection._find(query).limit(1))
     if not result:
         return make_response(jsonify({"error": "Content not found"}), 404)
 
     return jsonify(json.loads(json.dumps(result, cls=JSONEncoder)))
+
+
+def get_dependency_by_level(full_name, connection):
+    initial_query = {"full_name": full_name}
+    result = connection._find(initial_query).limit(1)
+    if not result:
+        return None
+    root = result[0]
+
+    q = [root]
+    level = 1
+    while q and level <= 3:  # TODO need optimization for larger initial level
+        # Collect dependencies of all nodes in the current layer
+        temp = set()
+        for item in q:
+            if 'dependency_project_id' in item:
+                temp.update(item['dependency_project_id'])
+
+        # Query all dependencies
+        dependencies_query = {"full_name": {"$in": list(temp)}}
+        dependencies_results = list(connection._find(dependencies_query))
+        dependencies_dict = {item['full_name']: item for item in dependencies_results}
+
+        # Prepare nodes for the next layer
+        next_level = []
+        for item in q:
+            item['apiCalled'] = True
+            if 'dependency_project_id' in item:
+                item['children'] = [
+                    {**dependencies_dict[d], 'uuid': str(uuid.uuid4())}
+                    for d in item['dependency_project_id']
+                    if d in dependencies_dict
+                ]
+                next_level.extend(item['children'])
+
+        q = next_level
+        level += 1
+
+    return root
+
+
+@app.route('/get_all_dependency')
+def get_all_dependency():
+    connection = DatabaseManager('3.139.100.241', 27017)
+    connection.connect_mongo("test_database", "test_collection")
+
+    full_name = request.args.get('full_name')
+
+    result = get_dependency_by_level(full_name, connection)
+
+    if result:
+        return jsonify(json.loads(json.dumps(result, cls=JSONEncoder)))
+    else:
+        return make_response(jsonify({"error": "Content not found"}), 404)
 
 
 @app.route('/get_dependency')
@@ -27,7 +82,7 @@ def get_dependency():
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
     query = {"full_name": full_name}
-    result = list(connection.find(query).limit(1))
+    result = list(connection._find(query).limit(1))
     if not result:
         return make_response(jsonify({"error": "Content not found"}), 404)
 
@@ -39,6 +94,7 @@ def get_dependency():
         child = {
             "name": dependency.split('/')[-1],
             "full_name": dependency,
+            "uuid": str(uuid.uuid4()),
             "children": []
         }
         children.append(child)
