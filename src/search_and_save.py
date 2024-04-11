@@ -38,8 +38,8 @@ def search_and_save(query):
         seen.add(cur)
 
         # checking if this repo exists in DB
-        query = {"full_name": "cur"}
-        result = list(connection.find(query))
+        query = {"full_name": cur}
+        result = list(connection._find(query))
         if result is not None and len(result) > 0:
             continue
 

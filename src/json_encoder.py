@@ -12,6 +12,6 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         elif isinstance(o, datetime):
-            return o.isoformat()
+            return o.strftime("%Y-%m-%d %H:%M:%S")
         return json.JSONEncoder.default(self, o)
 
