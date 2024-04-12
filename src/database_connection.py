@@ -63,14 +63,14 @@ class DatabaseManager:
             query = {}
         return self.collection.count_documents(query)
     
+    # remove document from the collection, if field and value are provided, 
+    # it will remove the document with that field and value, otherwise it will remove all documents.
     def remove(self, field=None, value=None):
-        """Remove a document from the collection, if field is not provided, 
-            it will remove all documents."""
         if field and value:
             query = {field: value}
         else:
             query = {}
-        self.collection.delete_many(query)
+        self.collection.delete_one(query)
 
     def _remove(self, query={}):
         """Remove documents from the collection, if query is not provided, 
@@ -87,14 +87,7 @@ class DatabaseManager:
 
 
     def search_bar(self, keyword, language=None, license=None, num = 10, category=None):
-        """Search for a document in the collection, return a list of documents that match the search.
-            keyword: the name of the project, optional, if not provided, it will return all documents
-            language: the language of the project, optional.
-            license: the license of the project, optional.
-            num: the number of documents to return, optional, default is 10
-            category: the field to sort by, users can choose from 
-                'stars', 'forks', 'watchers', 'open_issues', 'created_at', 
-                'updated_at', 'pushed_at', etc. optional"""
+        """Search for a document in the collection, return a list of documents that match the search."""
         query = {}
         if language:
             query['language'] = language
@@ -137,13 +130,14 @@ def insertion_test():
     db.connect_mongo("just_for_test", "just_for_test")
     db.insert(data)
 
-
 def search_test():
 
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
 
     print(connection.search_bar(keyword='numpy', num = 10, category='stars'))
+    print(len(connection.search_bar(keyword='numpy', num = 10, category='stars')))
+    
     
 
 if __name__ == "__main__":
