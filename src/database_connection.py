@@ -102,7 +102,7 @@ class DatabaseManager:
         if license:
             query['project_license'] = license
         if keyword:
-            query['name'] = keyword
+            query['name'] = {"$regex": keyword, "$options": "i"}
         cnt=self._count(query)
         ans=self.find(query, sort_by = category, limit=limit_num ,skip = skip_row)[:entry_per_page]
         return ans, cnt
@@ -145,12 +145,16 @@ def search_test():
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
 
-    page=2
-    entryNum=10
-    res=connection.search_bar(category='stars',page=page, entryNum=entryNum)[0]
-    total=connection.search_bar(category='stars',page=page, entryNum=entryNum)[1]
-    for i in range(len(res)):
-        print(res[i],'\t', (page-1)*entryNum+i+1,'/',total)
+    # pagaination test
+    # page=1
+    # entryNum=10
+    # res=connection.search_bar(category='stars',page=page, entryNum=entryNum)[0]
+    # total=connection.search_bar(category='stars',page=page, entryNum=entryNum)[1]
+    # for i in range(len(res)):
+    #     print(res[i],'\t', (page-1)*entryNum+i+1,'/',total)
+
+    # fuzzy search test
+    print(connection.search_bar(keyword='dj',category='stars',page=1, entryNum=10)[0])
     
 
 if __name__ == "__main__":
