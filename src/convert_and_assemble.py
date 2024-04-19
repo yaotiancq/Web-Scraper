@@ -22,12 +22,18 @@ def convert_api_response(repo_info, releases_info, dependency_info):
     for dependency in dependency_info:
         if dependency['repository'] is not None:
             dependency_id = dependency['repository']['nameWithOwner']
+            language = dependency['repository'].get('primaryLanguage', {}).get('name') if dependency['repository'].get(
+                'primaryLanguage') else None
         else:
             dependency_id = dependency['packageName']
+            language = None
+        version = dependency['requirements']
+        if dependency_id == repo_info['name'] or dependency_id == repo_info['full_name']:
+            continue
+        dependency_tuple = (dependency_id, version, language)
+        dependencies.add(dependency_tuple)
 
-        dependencies.add(dependency_id)
-
-    dependencies = list(dependencies)
+    dependencies = [{"full_name": dep[0], "version": dep[1], "language": dep[2]} for dep in dependencies]
 
     # convert repo info
     data = {
@@ -76,7 +82,7 @@ def assemble_api_response(full_name):
         return None
 
     releases_info = client.get_releases(full_name)
-    dependency_info = client.get_dependencies(repo_info['owner']['login'], repo_info['name'], 1)
+    dependency_info = client.get_dependencies(repo_info['owner']['login'], repo_info['name'], 1, ('C', 'C++'))
 
     data = convert_api_response(repo_info, releases_info, dependency_info)
 
@@ -84,4 +90,4 @@ def assemble_api_response(full_name):
 
 
 if __name__ == "__main__":
-    assemble_api_response('kitao/pyxel')
+    assemble_api_response('tensorflow/tensorflow')

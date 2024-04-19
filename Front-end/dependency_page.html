@@ -70,7 +70,7 @@
       var option;
 
       myChart.showLoading();
-      $.get(ROOT_PATH + '/get_dependency', { full_name: "edsu/xkcd2347" }, function (data) {
+      $.get(ROOT_PATH + '/get_dependency', { full_name: "tensorflow/tensorflow" }, function (data) {
         myChart.hideLoading();
         myChart.setOption(
           (option = {
@@ -81,7 +81,7 @@
                 return 'Full Name: ' + (params.data.full_name ? params.data.full_name : 'None') 
                       + '<br>Language: ' + (params.data.language ? params.data.language : 'None') 
                       + '<br>License: ' + (params.data.project_license ? params.data.project_license : 'None') 
-                      + '<br>Version: ' + (params.data.Version ? params.data.Version : 'None') 
+                      + '<br>Version: ' + (params.data.version ? params.data.version : 'None') 
                       + '<br>Stars: ' + (params.data.stars ? params.data.stars : 'None') 
                       + '<br>Description: ' + (params.data.description ? params.data.description : 'None') 
                       + '<br>Last Update: ' + (params.data.updated_at ? params.data.updated_at : 'None');
@@ -201,7 +201,7 @@
 
       function expandAll() {
         myChart.showLoading();
-        $.get(ROOT_PATH + '/get_all_dependency', { full_name: "edsu/xkcd2347" }, function (data) {
+        $.get(ROOT_PATH + '/get_all_dependency', { full_name: "tensorflow/tensorflow" }, function (data) {
           var rootNode = option.series[0].data[0];
           Object.assign(rootNode, data);
           myChart.hideLoading();

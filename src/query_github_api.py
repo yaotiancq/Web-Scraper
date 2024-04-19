@@ -83,7 +83,7 @@ def load_config(config_file='config.ini'):
 
 class GitHub_Api:
     """
-        To use this class, you should add a config.ini file in the project root directory
+        To use this class, you should update the config.ini file in the project root directory
     """
 
     def __init__(self, key=None):
@@ -171,7 +171,7 @@ class GitHub_Api:
     @functools.lru_cache(maxsize=1024)
     def get_releases(self, full_name):
 
-        url = 'https://api.github.com/repos/' + full_name + '/releases'
+        url = 'https://api.github.com/repos/' + full_name + '/releases?per_page=10'  # keep only the latest 10 releases
         headers = {
             "Authorization": "Bearer {}".format(self.key),
             "Accept": "application/vnd.github+json"
@@ -185,7 +185,7 @@ class GitHub_Api:
         return results
 
     @functools.lru_cache(maxsize=1024)
-    def get_dependencies(self, repo_owner, repo_name, depth=1, lang=None):
+    def get_dependencies(self, repo_owner, repo_name, depth=1, langs=None):
         """
         Retrieve repository dependencies.
 
@@ -208,6 +208,7 @@ class GitHub_Api:
                     dependencies {
                       nodes {
                         packageName
+                        requirements
                         repository {
                           name
                           nameWithOwner
@@ -247,9 +248,15 @@ class GitHub_Api:
             for dep in m['dependencies']['nodes']:
                 dep['level'] = len(self.parents)
 
-                if lang and dep['repository'] and dep['repository']['primaryLanguage'] and \
-                        dep['repository']['primaryLanguage']['name'].lower() != lang.lower():
-                    continue
+                if langs:
+                    # Check if 'repository' and 'primaryLanguage' exist and 'primaryLanguage' has a 'name'
+                    primary_language = dep['repository'].get('primaryLanguage') if dep.get('repository') else None
+                    language_name = primary_language.get('name') if primary_language else None
+
+                    # Check if 'langs' is not empty and either 'primaryLanguage' name is not valid or not in
+                    # specified languages
+                    if not language_name or language_name.lower() not in (lang.lower() for lang in langs):
+                        continue
 
                 if dep['packageName'] in visited:
                     continue
@@ -271,17 +278,17 @@ class GitHub_Api:
                             dep['repository']['owner']['login'],
                             dep['repository']['name'],
                             depth,
-                            lang
+                            langs
                         )
                         self.parents.pop()
 
 
 if __name__ == "__main__":
     gh = GitHub_Api()
-    gh.search_repositories('kitao/pyxel')
-    gh.get_repo_info('kitao/pyxel')
-    gh.get_releases('kitao/pyxel')
-    for dep in gh.get_dependencies('kitao', 'pyxel', 2):
+    # gh.search_repositories('kitao/pyxel')
+    # gh.get_repo_info('kitao/pyxel')
+    # gh.get_releases('kitao/pyxel')
+    for dep in gh.get_dependencies('kitao', 'pyxel', 1):
         indent = dep['level'] * "    "
         if dep['repository'] is not None:
             package = dep['repository']['nameWithOwner']
