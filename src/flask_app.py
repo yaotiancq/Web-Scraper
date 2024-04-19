@@ -30,13 +30,13 @@ def get_dependency_by_level(full_name, connection):
     root = result[0]
 
     q = [root]
-    level = 1
-    while q and level <= 3:  # TODO need optimization for larger initial level
+    while q:
         # Collect dependencies of all nodes in the current layer
         temp = set()
         for item in q:
             if 'dependency_project_id' in item:
-                temp.update(item['dependency_project_id'])
+                for dependency in item['dependency_project_id']:
+                    temp.add(dependency['full_name'])
 
         # Query all dependencies
         dependencies_query = {"full_name": {"$in": list(temp)}}
@@ -49,14 +49,13 @@ def get_dependency_by_level(full_name, connection):
             item['apiCalled'] = True
             if 'dependency_project_id' in item:
                 item['children'] = [
-                    {**dependencies_dict[d], 'uuid': str(uuid.uuid4())}
-                    for d in item['dependency_project_id']
-                    if d in dependencies_dict
+                    {**dependencies_dict[dependency['full_name']], 'uuid': str(uuid.uuid4()), 'version': dependency['version']}
+                    for dependency in item['dependency_project_id']
+                    if dependency['full_name'] in dependencies_dict
                 ]
                 next_level.extend(item['children'])
 
         q = next_level
-        level += 1
 
     return root
 
@@ -92,8 +91,10 @@ def get_dependency():
     children = []
     for dependency in result['dependency_project_id']:
         child = {
-            "name": dependency.split('/')[-1],
-            "full_name": dependency,
+            "name": dependency['full_name'].split('/')[-1],
+            "full_name": dependency['full_name'],
+            "language": dependency.get('language', None),
+            "version": dependency['version'],
             "uuid": str(uuid.uuid4()),
             "children": []
         }
