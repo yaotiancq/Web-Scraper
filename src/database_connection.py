@@ -33,7 +33,7 @@ class DatabaseManager:
         It returns a cursor object. You need to iterate over the cursor to get the documents."""
         return self.collection.find(query)
     
-    def find(self, d=None, limit=-1, selected_field=['name','stars'], sort_by=None, skip=0):
+    def find(self, d=None, limit=-1, selected_field=[], sort_by=None, skip=0):
         """Find documents in the collection, if query is not provided, it will return all documents.
         It returns a list of dictionaries."""
         projection = {}

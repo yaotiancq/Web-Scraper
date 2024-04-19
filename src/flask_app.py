@@ -9,6 +9,16 @@ from src.json_encoder import JSONEncoder
 app = Flask(__name__)
 
 
+@app.route('/search')
+def search_repository():
+    keyword = request.args.get('keyword')
+    connection = DatabaseManager('3.139.100.241', 27017)
+    connection.connect_mongo("test_database", "test_collection")
+    result = connection.search_bar(keyword)[0]
+
+    return jsonify(json.loads(json.dumps(result, cls=JSONEncoder)))
+
+
 @app.route('/get_repository')
 def get_repository():
     full_name = request.args.get('full_name')
