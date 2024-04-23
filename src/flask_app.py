@@ -1,7 +1,7 @@
 import json
 import uuid
 
-from flask import Flask, jsonify, request, make_response, send_file
+from flask import Flask, jsonify, request, make_response
 
 from database_connection import DatabaseManager
 from src.json_encoder import JSONEncoder
@@ -12,11 +12,24 @@ app = Flask(__name__)
 @app.route('/search')
 def search_repository():
     keyword = request.args.get('keyword')
+    language = request.args.get('language')
+    project_license = request.args.get('license')
+    if project_license and project_license == "GPL":
+        project_license = "General Public License"
+    category = request.args.get('category')
+    page_size = int(request.args.get('page_size', 20))
+    page_num = int(request.args.get('page_num', 1))
+
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
-    result = connection.search_bar(keyword)[0]
 
-    return jsonify(json.loads(json.dumps(result, cls=JSONEncoder)))
+    results = connection.search_bar(keyword=keyword, language=language, project_license=project_license,
+                                    category=category, page=page_num, entryNum=page_size)
+
+    if results:
+        return jsonify([json.loads(json.dumps(result, cls=JSONEncoder)) for result in results])
+    else:
+        return jsonify([])
 
 
 @app.route('/get_repository')
@@ -34,7 +47,7 @@ def get_repository():
 
 def get_dependency_by_level(full_name, connection):
     initial_query = {"full_name": full_name}
-    result = connection._find(initial_query).limit(1)
+    result = list(connection._find(initial_query).limit(1))
     if not result:
         return None
     root = result[0]
@@ -59,7 +72,8 @@ def get_dependency_by_level(full_name, connection):
             item['apiCalled'] = True
             if 'dependency_project_id' in item:
                 item['children'] = [
-                    {**dependencies_dict[dependency['full_name']], 'uuid': str(uuid.uuid4()), 'version': dependency['version']}
+                    {**dependencies_dict[dependency['full_name']], 'uuid': str(uuid.uuid4()),
+                     'version': dependency['version']}
                     for dependency in item['dependency_project_id']
                     if dependency['full_name'] in dependencies_dict
                 ]
