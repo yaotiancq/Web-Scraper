@@ -1,6 +1,4 @@
-import pymongo
 from pymongo import MongoClient
-import datetime
 
 
 class DatabaseManager:
@@ -33,24 +31,36 @@ class DatabaseManager:
         It returns a cursor object. You need to iterate over the cursor to get the documents."""
         return self.collection.find(query)
     
-    def find(self, d=None, limit=-1, selected_field=[], sort_by=None, skip=0):
+    def find(self, d=None, limit=-1, sort_by=None, sort_order=-1, skip=0, sort_by_array_size=None):
         """Find documents in the collection, if query is not provided, it will return all documents.
         It returns a list of dictionaries."""
-        projection = {}
-        projection['_id'] = 0
-        if selected_field:
-            for field in selected_field:
-                projection[field] = 1
+        pipeline = []
+
         if d:
-            cursor = self.collection.find(d, projection)
-        else:
-            cursor = self.collection.find({}, projection)
+            pipeline.append({"$match": d})
+
+        # add the size of the sorted field
+        if sort_by_array_size:
+            pipeline.append({
+                "$addFields": {
+                    "count_for_sort": {"$size": f"${sort_by_array_size}"}
+                }
+            })
+
+        # Sort the results
         if sort_by:
-            cursor = cursor.sort(sort_by,-1)
+            pipeline.append({"$sort": {sort_by: sort_order}})
+        elif sort_by_array_size:
+            pipeline.append({"$sort": {"count_for_sort": sort_order}})
+
+        # Apply skip and limit
         if skip > 0:
-            cursor = cursor.skip(skip)
+            pipeline.append({"$skip": skip})
         if limit > 0:
-            cursor = cursor.limit(limit)
+            pipeline.append({"$limit": limit})
+
+        # Execute the aggregation pipeline
+        cursor = self.collection.aggregate(pipeline)
         return list(cursor)
           
     def _count(self, query):
@@ -87,8 +97,8 @@ class DatabaseManager:
         """Update the target document"""
         self.collection.update(query, new_query)
 
-
-    def search_bar(self, keyword=None, language=None, license=None, limit_num = -1, category=None, page=1, entryNum=10):
+    def search_bar(self, keyword=None, language=None, project_license=None, limit_num=-1, category=None, sort_order=-1,
+                   page=1, entryNum=10):
         """Search the collection based on the keyword, language, license, and category.
         It returns a list of dictionaries, also returns the total number of documents.
         If num is provided, it will return the number of documents specified by num.
@@ -99,12 +109,24 @@ class DatabaseManager:
         skip_row = (page - 1) * entry_per_page
         if language:
             query['language'] = language
-        if license:
-            query['project_license'] = license
+        if project_license:
+            query['project_license'] = {"$regex": project_license, "$options": "i"}
         if keyword:
-            query['name'] = {"$regex": keyword, "$options": "i"}
-        cnt=self._count(query)
-        ans=self.find(query, sort_by = category, limit=limit_num ,skip = skip_row)[:entry_per_page]
+            query['full_name'] = {"$regex": keyword, "$options": "i"}
+        cnt = self._count(query)
+        if category:
+            if category == "Recent Updated":
+                ans = self.find(query, sort_by='updated_at', sort_order=-1, limit=limit_num, skip=skip_row)[
+                      :entry_per_page]
+            elif category == "Most Popular":
+                ans = self.find(query, sort_by='stars', sort_order=-1, limit=limit_num, skip=skip_row)[
+                      :entry_per_page]
+            elif category == "Least Dependencies":
+                ans = self.find(query, sort_by_array_size='dependency_project_id', sort_order=1, limit=limit_num,
+                                skip=skip_row)[:entry_per_page]
+        else:
+            ans = self.find(query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
+                  :entry_per_page]
         return ans, cnt
         
 def insertion_test():
