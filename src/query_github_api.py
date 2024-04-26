@@ -202,7 +202,7 @@ class GitHub_Api:
             {
               repository(owner: "%s", name: "%s") {
                 description
-                dependencyGraphManifests(first: 50) {
+                dependencyGraphManifests(first: 100) {
                   nodes {
                     blobPath
                     dependencies {

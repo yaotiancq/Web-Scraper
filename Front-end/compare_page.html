@@ -65,7 +65,7 @@
             border: none;
         }
         td {
-            font-size: 20px;
+            font-size: 26px;
             font-family: 'Roboto', sans-serif;
         }
         /* Alternate row background colors */
@@ -92,6 +92,12 @@
             border-radius: 20px;
         }
         #searchResults div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            text-align: justify;
+            margin-bottom: 10px;
             padding: 6px 8px;
             margin: 1px 0; 
             cursor: pointer; 
@@ -100,12 +106,25 @@
         #searchResults div:hover {
             background-color: #f0f0f0;
         }
+        #searchResults .name {
+            font-size: 24px;
+            padding-left: 30px;
+            text-align: left;
+            flex: 3;
+        }
+        #searchResults .language {
+            font-size: 20px;
+            color: gray;
+            text-align: left;
+            flex: 1;
+        }
         #searchInput {
             width: 20%;
             padding: 10px;
-            border-radius: 20px;
-            border: 3px solid #444444;
-            font-size: 20px;
+            border-radius: 30px;
+            border: 5px solid #444444;
+            padding-left: 30px;
+            font-size: 28px;
             font-family: 'Roboto', sans-serif;
         }
         .searchBtn {
@@ -175,7 +194,9 @@
                 var target = $(event.target);
 
                 // If the click is not the search input box or the search result itself, the search result will be hidden.
-                if (!target.closest('#searchInput').length && !target.closest('#searchResults').length) {
+                if (!target.closest('.searchBtn').length 
+                  && !target.closest('#searchInput').length 
+                  && !target.closest('#searchResults').length) {
                     $('#searchResults').empty().hide();
                     $('#searchInput').val('');
                 }
@@ -192,9 +213,10 @@
             $.ajax({
                 url: "http://localhost:8000/search",
                 type: "GET",
-                data: { keyword: keyword },
+                data: { keyword: keyword, page_size: 10 },
                 success: function(data) {
                     const $resultsContainer = $('#searchResults').empty().show();
+                    data = data[0];
                     
                     if(data.length === 0) {
                         // If empty, displays "No Result"
@@ -203,13 +225,16 @@
                             .appendTo($resultsContainer);
                     } else {
                         data.forEach(item => {
-                            $('<div/>')
-                                .text(item.name + ' | ' + item.language) 
-                                .appendTo($resultsContainer)
+                            const $div = $('<div/>').addClass('searchResults');
+
+                            $('<span/>').addClass('name').text(item.name).appendTo($div);
+                            $('<span/>').addClass('language').text(item.language).appendTo($div);
+
+                            $div.appendTo($resultsContainer)
                                 .click(function() {
                                     const newRowContent = `
                                         <tr>
-                                            <td>${item.name}</td>
+                                            <td>${item.full_name}</td>
                                             <td>${item.language || 'N/A'}</td>
                                             <td>${item.project_license || 'N/A'}</td>
                                             <td>${item.updated_at}</td>
