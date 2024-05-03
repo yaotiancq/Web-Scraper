@@ -27,6 +27,10 @@
           line-height: 50px;
           padding-left: 20px;
           font-size: 28px;
+          font-family: "Trebuchet MS", serif;
+          font-weight: bold;
+          font-style: italic;
+          box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
         }
         .back-arrow {
           position: absolute;
@@ -43,10 +47,12 @@
         #container h2 {
             font-size: 64px;
             font-family: 'Lobster', cursive;
+            color: #444444;
         }
         #repoTable th {
             font-size: 32px;
             font-family: 'Lobster', cursive;
+            color: #444444;
         }
         table {
             margin: auto;
@@ -108,9 +114,9 @@
         }
         #searchResults .name {
             font-size: 24px;
-            padding-left: 30px;
+            padding-left: 20px;
             text-align: left;
-            flex: 3;
+            flex: 5;
         }
         #searchResults .language {
             font-size: 20px;
@@ -227,7 +233,7 @@
                         data.forEach(item => {
                             const $div = $('<div/>').addClass('searchResults');
 
-                            $('<span/>').addClass('name').text(item.name).appendTo($div);
+                            $('<span/>').addClass('name').text(item.full_name).appendTo($div);
                             $('<span/>').addClass('language').text(item.language).appendTo($div);
 
                             $div.appendTo($resultsContainer)

@@ -3,6 +3,7 @@ import uuid
 
 from flask import Flask, jsonify, request, make_response
 
+import update_database
 from database_connection import DatabaseManager
 from src.json_encoder import JSONEncoder
 
@@ -30,6 +31,11 @@ def search_repository():
         return jsonify([json.loads(json.dumps(result, cls=JSONEncoder)) for result in results])
     else:
         return jsonify([])
+
+
+@app.route('/update')
+def update_data():
+    return update_database.start_update_database()
 
 
 @app.route('/get_repository')

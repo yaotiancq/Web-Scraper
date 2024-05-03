@@ -1,13 +1,13 @@
 import logging
-import threading
 import time
 from collections import deque
+from threading import Thread, Lock
 
 import convert_and_assemble
 from database_connection import DatabaseManager
 from src.query_github_api import GitHub_Api
 
-lock = threading.Lock()
+lock = Lock()
 
 
 def search_and_save(query):
@@ -58,7 +58,7 @@ def search_and_save(query):
                 continue
 
             if count <= count_root and len(assembled_result['dependency_project_id']) == 0:
-                logging.warning(f"No dependencies found for repo: {assembled_result['full_name']}")
+                logging.info(f"No dependencies found for repo: {assembled_result['full_name']}")
                 continue
 
             # checking if this repo exists in DB
@@ -112,6 +112,14 @@ def update_database():
             lock.release()
     else:
         logging.warning("update_database is already running.")
+
+
+def start_update_database():
+    if not lock.locked():
+        Thread(target=update_database).start()
+        return "Database update started successfully."
+    else:
+        return "Update is already running. Please do not call again."
 
 
 if __name__ == "__main__":
