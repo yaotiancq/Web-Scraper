@@ -15,11 +15,12 @@
             flex-direction: column; /* Stack elements vertically */
         }
 
+
         /* Grey bar on the top*/
         .grey-bar {
+            background-color: #f2f2f2;
+            height: 40px;
             width: 100%;
-            height: 50px;
-            background-color: #444444;
             position: fixed;
             top: 0;
             left: 0;
@@ -28,15 +29,15 @@
             align-items: center;
             justify-content: flex-start;
             padding-left: 20px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         /* Web Scrapper button style */
         .web-scraper-button {
             background-color: transparent;
             border: none;
-            color: white;
-            font-size: 28px;
+            color: #333;
+            font-size: 20px;
             cursor: pointer;
             text-decoration: none;
             font-family: "Trebuchet MS", serif; /* Set font family */
@@ -59,50 +60,45 @@
             padding: 15px;
             width: 600px;
             font-size: 24px;
-            border: 5px solid darkgray;
-            color: darkgray;
+            border: 3px solid #ccc;
             border-radius: 50px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            font-weight: bold; /* Set font weight to bold */
         }
 
         /* Dropdown wrapper */
         .dropdown-wrapper {
             display: flex;
             justify-content: center;
-            margin-top: 30px; /* Add margin at the top */
+            margin-top: 20px; /* Add margin at the top */
         }
 
         /* Dropdown style */
         select {
             width: 200px;
             padding: 10px;
-            font-size: 18px;
-            border: 3px solid darkgray;
-            color: gray;
+            font-size: 16px;
+            border: 1px solid #ccc;
             border-radius: 5px;
             margin-bottom: 5px; /* Add some margin between dropdowns */
             margin-left: 25px; /* Add horizontal margin */
             margin-right: 25px; /* Add horizontal margin */
             font-family: "Trebuchet MS", serif; /* Set font family */
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         /* Compare button style */
         .compare-button {
             position: fixed;
-            top: 100px;
+            top: 70px;
             right: 100px;
-            padding: 10px 30px;
-            font-size: 28px;
+            padding: 15px 50px;
+            font-size: 32px;
             border: 4px solid grey;
             color: grey;
             border-radius: 50px;
             text-decoration: none;
             cursor: pointer;
-            font-weight: bold;
-            font-style: italic;
+            font-weight: bold; /* Set font weight to bold */
             font-family: "Trebuchet MS", serif; /* Set font family */
-            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
         }
 
         /* Random text transform */
@@ -117,90 +113,90 @@
     </style>
 </head>
 <body>
-    <header>
-        <img src="../static/logo.png" alt="Logo" width="300px">
-    </header>
 
-    <main>
-             <!--
-            <h1>Web Scrapper 2024</h1>
-            <p id="content">Yisu Thomas Manvi Weiwei Yao</p>
- -->
-        <script>
-            function randomFontSize() {
-                var content = document.getElementById("content");
-                var words = content.innerText.split(" ");
-                content.innerHTML = "";
 
-                words.forEach(function(word) {
-                    var span = document.createElement("span");
-                    span.textContent = word;
-                    var fontSize = Math.floor(Math.random() * 20) + 10; // Random font size between 10 and 30 pixels
-                    span.style.fontSize = fontSize + "px";
-                    content.appendChild(span);
-
-                    var br = document.createElement("br");
-                    content.appendChild(br); // Add line break after each word
-                });
-            }
-
-            // Call the randomFontSize function when the page loads
-            window.onload = randomFontSize;
-
-            // Function to submit the form when Enter key is pressed
-            document.getElementById("searchInput").addEventListener("keypress", function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault(); // Prevent the default form submission
-                    document.getElementById("searchForm").submit(); // Submit the form
-                }
-            });
-        </script>
+        <header>
+            <img src="../static/logo.png" alt="Logo" width="250px">
+        </header>
 
         <br>
-        <form action = "./list_page.html" method = "GET">
-            <input id = "searchInput" type = "text" name = "query" placeholder = "Enter search keyword">
+        <form id="searchForm" onsubmit="submitForm(); return false;">
+            <input id="searchInput" type="text" name="query" placeholder="Enter search keyword">
         </form>
 
         <div class="grey-bar">
-            <a href = "home.html" class="web-scraper-button">GitHub Web Scraper</a>
+            <a href="/" class="web-scraper-button">Web Scraper</a>
         </div>
 
         <br>
 
-            <div class = "dropdown-container">
-                <div class = "dropdown-wrapper">
-        <!-- Language dropdown -->
-            <!-- <label for = "Language">Language</label> -->
-            <select id = "Language">
-                <option value = "">Select Language</option>
-                <option value = "C">C</option>
-                <option value = "C++">C++</option>
-            </select>
+        <div class="dropdown-container">
+            <div class="dropdown-wrapper">
+                <!-- Language dropdown -->
+                <select id="Language">
+                    <option value="" disabled selected>Select Language</option>
+                    <option value="C">C</option>
+                    <option value="C++">C++</option>
+                </select>
 
-        <!-- License dropdown -->
-            <!-- <label for = "License">License</label> -->
-            <select id = "License">
-                <option value = "">Select License</option>
-                <option value = "MIT">MIT</option>
-                <option value = "GPL">GPL</option>
-                <option value = "Apache">Apache</option>
-                <option value = "BSD">BSD</option>
-            </select>
+                <!-- License dropdown -->
+                <select id="License">
+                    <option value="" disabled selected>Select License</option>
+                    <option value="MIT">MIT</option>
+                    <option value="GPL">GPL</option>
+                    <option value="Apache">Apache</option>
+                    <option value="BSD">BSD</option>
+                </select>
 
-        <!-- Category dropdown -->
-            <!-- <label for = "Category">Category</label> -->
-            <select id = "Category">
-                <option value = "">Select Category</option>
-                <option value = "Recent Updated">Recent Updated</option>
-                <option value = "Most Popular">Most Popular</option>
-                <option value = "Least Dependencies">Least Dependencies</option>
-            </select>
+                <!-- Category dropdown -->
+                <select id="Category">
+                    <option value="" disabled selected>Select Category</option>
+                    <option value="Recent Updated">Recent Updated</option>
+                    <option value="Most Popular">Most Popular</option>
+                    <option value="Without Dependency">Without Dependency</option>
+                    <option value="TBD">TBD</option>
+                </select>
             </div>
 
-        <!-- Compare button -->
-        <a href = "./compare_page.html" class="compare-button">Compare</a>
-        <br>
+            <!-- Compare button -->
+            <a href = "./compare_page.html" class = "compare-button">Compare</a>
+        </div>
 
-    </main>
+        <script>
+        document.getElementById("searchInput").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault(); // Prevent the default form submission
+                    submitForm(); // Submit the form
+                }
+            });
+
+             function submitForm() {
+            var keyword = document.getElementById("searchInput").value;
+            var language = document.getElementById("Language").value;
+            var license = document.getElementById("License").value;
+            var category = document.getElementById("Category").value;
+
+            var queryParams = new URLSearchParams({
+                query: keyword,
+                language: language,
+                license: license,
+                category: category
+            });
+
+            window.location.href = './list_page.html?' + queryParams.toString();
+        }
+
+        document.addEventListener("DOMContentLoaded", function(event) {
+            document.getElementById("searchInput").addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    submitForm();
+                }
+            });
+        });
+        </script>
+
+
+
 </body>
 </html>
