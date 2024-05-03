@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset = "utf-8">
-  <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Web Scraper</title>
-  <script src = "echarts.js"></script>
-  <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src = "https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
-  <script src = "https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.1/underscore-min.js"></script>
-  <link rel = "stylesheet" href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <style>
     html,
     body {
@@ -37,6 +33,14 @@
       justify-content: space-between;
       align-items: center;
     }
+    .back-arrow {
+      position: absolute;
+      top: 80px;
+      left: 50px;
+      font-size: 36px;
+      cursor: pointer;
+      color: #444444;
+    }
     .search-bar {
       text-align: center;
       margin-bottom: 20px;
@@ -47,12 +51,6 @@
       padding: 5px;
       font-size: 16px;
       border-radius: 50px;
-    }
-    .search-bar button {
-      height: 40px;
-      padding: 5px 10px;
-      font-size: 16px;
-      cursor: pointer;
     }
     .dropdown-container {
       display: flex;
@@ -68,7 +66,7 @@
       font-size: 12px;
       border: 0px solid #ccc;
       border-radius: 5px;
-      margin-bottom: 5px;
+      margin-bottom: 30px;
       margin-left: 50px;
       margin-right: 50px;
     }
@@ -85,43 +83,63 @@
       cursor: pointer;
       font-weight: bold;
     }
-
     /* Repository container style */
     #repositoryInfo {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
     }
-    .repository-left {
-      width: calc(33.33% - 50px);
-      padding-right: 10px;
-      text-align: left
-    }
-    .repository-mid {
-      width: calc(33.33% - 100px);
-      text-align: center;
-    }
-    .repository-right {
-      width: calc(33.33% - 50px);
-      padding-left: 10px;
-      text-align: right
-    }
+
     .repository-container {
       display: flex;
       justify-content: space-between;
       padding: 10px;
-      margin-bottom: 20px;
-      background-color: white;
+      margin-bottom: 30px;
+      width: 90%;
+      background-color: #f9f9f9;
+      border-radius: 10px;
     }
+
+    .repository-container h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .repository-container p {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+
+    /* Repository left style */
+    .repository-left {
+      width: calc(33.33% - 50px);
+      margin-right: 20px;
+      text-align: left;
+    }
+
+    /* Repository mid style */
+    .repository-mid {
+      width: calc(33.33% - 100px);
+      text-align: center;
+    }
+
+    /* Repository right style */
+    .repository-right {
+      width: calc(33.33% - 50px);
+      margin-left: 20px;
+      text-align: right;
+    }
+
     /* Repository name link style */
     .repo-link {
       color: blue;
-      font-size: 40px;
+      font-size: 30px;
       text-decoration: underline;
       cursor: pointer;
     }
     /* Metadata style */
     .metadata {
-      font-size: 15px;
+      font-size: 12px;
       color: #666;
     }
 
@@ -136,309 +154,239 @@
     .space {
       margin: 0 5px;
     }
+
+
+    /* Pagination style */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .pagination-button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      background-color: #ccc;
+      border: none;
+      border-radius: 3px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .pagination-button.active {
+      background-color: #007bff;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
-<div class = "top-bar">
-  <span onclick = "window.location.href='home.html';" style = "cursor:pointer;">GitHub Web Scraper</span>
+<div class="top-bar">
+  <span onclick="window.location.href='home.html';" style="cursor:pointer;">GitHub Web Scraper</span>
 </div>
-<div id = "main">
-  <div class = "search-bar">
-    <form action = "/search" method = "GET">
-      <input id = "searchInput" type = "text" name = "query" placeholder = " Enter search keyword... ">
+<div class="back-arrow" onclick="history.back();"><i class="fas fa-arrow-left"></i></div>
+<div id="main">
+  <div class="search-bar">
+    <form id="searchForm" action="/search" method="GET">
+      <input id="searchInput" type="text" name="keyword" placeholder="Enter search keyword...">
     </form>
   </div>
-  <div class = "dropdown-container">
-    <div class = "dropdown-wrapper">
+  <div class="dropdown-container">
+    <div class="dropdown-wrapper">
       <!-- Language dropdown -->
-      <label for = "Language"></label>
-      <select id = "Language">
-        <option value = "" disabled selected>Select Language</option>
-        <option value = "C">C</option>
-        <option value = "C++">C++</option>
+      <select id="Language">
+        <option value="" disabled selected>Select Language</option>
+        <option value="C">C</option>
+        <option value="C++">C++</option>
       </select>
       <!-- License dropdown -->
-      <label for = "License"></label>
-      <select id = "License">
-        <option value = "" disabled selected>Select License</option>
-        <option value = "MIT">MIT</option>
-        <option value = "GPL">GPL</option>
-        <option value = "Apache">Apache</option>
-        <option value = "BSD">BSD</option>
+      <select id="License">
+        <option value="" disabled selected>Select License</option>
+        <option value="MIT">MIT</option>
+        <option value="GPL">GPL</option>
+        <option value="Apache">Apache</option>
+        <option value="BSD">BSD</option>
       </select>
       <!-- Category dropdown -->
-      <label for = "Category"></label>
-      <select id = "Category">
-        <option value = "" disabled selected>Select Category</option>
-        <option value = "Recent Updated">Recent Updated</option>
-        <option value = "Most Popular">Most Popular</option>
-        <option value = "Without Dependency">Without Dependency</option>
-        <option value = "TBD">TBD</option>
+      <select id="Category">
+        <option value="" disabled selected>Select Category</option>
+        <option value="Recent Updated">Recent Updated</option>
+        <option value="Most Popular">Most Popular</option>
+        <option value="Without Dependency">Without Dependency</option>
+        <option value="TBD">TBD</option>
       </select>
     </div>
-    <!-- Compare button -->
-    <a href="./compare_page.html" class="compare-button">Compare</a>
   </div>
-
-  <div id = "repositoryInfo">
-    <!-- This will be dynamically populated by JavaScript -->
-  </div>
+  <div id="repositoryInfo"></div>
+  <div id="pagination" class="pagination"></div>
+  <div id="pageInfo" class="page-info"></div>
 </div>
 
-<script id = "repository-template" type = "text/template">
-  <% repositories.forEach(repository => { %>
-  <div class = "repository-container">
-    <div class = "repository-left">
-      <p class = "metadata"><%= repository.owner_name %> <span class = "space"></span> • <span class = "space"></span> <%= repository.updated_at %> <span class = "space"></span> • <span class = "space"></span> V<%= repository.releases[0] ? repository.releases[0].name : 'N/A' %></p>
-      <h2><a href = "<%= repository.html_url %>" class = "repo-link" target = "_blank"><%= repository.name %></a></h2>
-      <p><%= repository.description || 'N/A' %></p>
-      <p class = "metadata"><%= repository.language || 'N/A' %> <span class = "space"></span> • <span class="space"></span> Issues:</strong> <%= repository.open_issues || 'N/A' %> <span class = "space"></span> • <span class = "space"></span> <%= repository.pushed_at ? repository.pushed_at.substring(0, 10) : 'N/A' %></p>
-    </div>
+<script>
+  // Function to fetch data from the backend with filters
+  async function fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber) {
+    try {
+      const requestData = { keyword: keyword, page: pageNumber };
+      if (language) requestData.language = language;
+      if (license) requestData.license = license;
+      if (category) requestData.category = category;
 
-    <div class = "repository-mid">
-      <p class = "metadata">Stars:</strong> <%= repository.stars || 'N/A' %> <span class = "space"></span> • <span class = "space"></span>Watchers:</strong> <%= repository.watchers || 'N/A' %></p>
-      <p class = "license"> <%= repository.project_license || 'N/A' %></p>
-    </div>
+      const response = await $.ajax({
+        url: "http://localhost:8000/search",
+        type: "GET",
+        data: requestData
+      });
+      return response;
+    } catch (error) {
+      console.error('Error fetching data: ', error);
+      return [];
+    }
+  }
+</script>
 
-    <div class = "repository-right">
-      <p class = "dependency">Dependency</p>
-      <ul>
-        <% repository.dependency_project_id.slice(0, 4).forEach(dependency => { %>
-        <li><%= dependency %></li>
-        <% }); %>
-      </ul>
-      <%  if(repository.dependency_project_id.length > 4) { %>
-      <a href = "dependency_page.html" class = "read more..."> read more...</a>
-      <% } %>
-    </div>
-  </div>
-  <% }); %>
+
+<script>
+  // Function to render repository information
+  function renderRepositoryInfo(data) {
+    const repositoryInfoElement = document.getElementById('repositoryInfo');
+    repositoryInfoElement.innerHTML = '';
+
+    data.forEach(repository => {
+      const repositoryContainer = document.createElement('div');
+      repositoryContainer.classList.add('repository-container');
+      repositoryContainer.innerHTML = `
+        <div class = "repository-left">
+          <p class = "metadata">${repository.owner_name || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.updated || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.releases[0] ? repository.releases[0].name : 'N/A'}</p>
+          <h2><a href = "${repository.html_url}" class = "repo-link" target = "_blank">${repository.name}</a></h2>
+          <p>${repository.description || 'N/A'}</p>
+          <p class = "metadata">${repository.language || 'N/A'}<span class = "space"></span> • <span class="space"></span> Issues: ${repository.open_issues || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.updated_at}</p>
+        </div>
+
+        <div class = "repository-mid">
+          <p class = "metadata">Stars: ${repository.stars || 'N/A'} <span class = "space"></span> • <span class = "space"></span> Watchers: ${repository.watchers || 'N/A'}</p>
+          <p class = "license">${repository.project_license || 'N/A'}</p>
+        </div>
+
+        <div class="repository-right">
+          <p class="dependency">Dependency</p>
+          <ul>
+            ${[...new Set(repository.dependency_project_id.map(dependency => dependency.full_name))].slice(0, 4).map(dependency => `<li>${dependency}</li>`).join('')}
+          </ul>
+          ${repository.dependency_project_id.length > 0 ? `<a href="dependency_page.html?full_name=${repository.full_name}" class="read more..."> read more...</a>` : ''}
+        </div>
+      `;
+      repositoryInfoElement.appendChild(repositoryContainer);
+    });
+  }
 </script>
 
 <script>
-  function renderRepositoryInfo(data) {
-    const template = document.getElementById('repository-template').innerHTML;
-    const rendered = _.template(template)({ repositories: data });
-    document.getElementById('repositoryInfo').innerHTML = rendered;
+  // Function to render pagination
+function renderPagination(dataLength) {
+  const totalPages = Math.ceil(dataLength / 20);
+  let paginationHTML = '';
+  const currentPage = getCurrentPage();
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentPage) {
+      paginationHTML += `<button class="pagination-button active" onclick="onPageButtonClick(${i})">${i}</button>`;
+    } else {
+      paginationHTML += `<button class="pagination-button" onclick="onPageButtonClick(${i})">${i}</button>`;
+    }
+  }
+  const paginationElement = document.getElementById('pagination');
+  paginationElement.innerHTML = paginationHTML;
+}
+
+// Function to get current page number
+function getCurrentPage() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const page = parseInt(urlParams.get('page')) || 1;
+  return page;
+}
+
+// Function to go to a specific page
+function goToPage(pageNumber, keyword, language, license, category) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('page', pageNumber);
+  const newUrl = url.toString();
+  window.location.href = newUrl;
+}
+
+
+// Call this function when clicking pagination button
+function onPageButtonClick(pageNumber) {
+  const keyword = $('#searchInput').val();
+  const language = $('#Language').val();
+  const license = $('#License').val();
+  const category = $('#Category').val();
+  goToPage(pageNumber, keyword, language, license, category);
+}
+
+
+  // Function to get data for a specific page
+  //function getDataForPage(data, pageNumber) {
+    //const itemsPerPage = 20;
+    //const startIndex = (pageNumber - 1) * itemsPerPage;
+    //const endIndex = startIndex + itemsPerPage;
+    //return data.slice(startIndex, endIndex);
+  //}
+
+  // Function to handle search functionality
+  async function searchData() {
+    const keyword = $('#searchInput').val();
+    const language = $('#Language').val();
+    const license = $('#License').val();
+    const category = $('#Category').val();
+    if (!keyword) {
+      $('#repositoryInfo').empty(); // delete search result
+      $('#pagination').empty(); // delete page button
+      $('#pageInfo').text(''); // delete page information
+      return;
+    }
+    try {
+      const pageNumber = getCurrentPage(); // Get current page number
+      const [data, totalCount] = await fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber);
+      //const filteredData = getDataForPage(data, pageNumber);
+      renderRepositoryInfo(data);
+      renderPagination(totalCount);
+    } catch (error) {
+      console.error('Error fetching data: ', error);
+      $('#repositoryInfo').empty(); // delete search result
+      $('#pagination').empty(); // delete page button
+      $('#pageInfo').text(''); // delete page information
+    }
   }
 
-  const testData = [
-    {
-      "_id": "660f752d3cd48ed54d6b21a2",
-      "created_at": "2015-06-15T20:28:27Z",
-      "default_branch": "main",
-      "dependency_project_id": [
-        "pytest-dev/pytest-django",
-        "actions/stale",
-        "MrSenko/sphinx-removed-in",
-        "hynek/build-and-inspect-python-package",
-        "hukkin/tomli",
-        "django/django",
-        "pytest-dev/pytest-asyncio",
-        "pytest-dev/pytest-mock",
-        "python-trio/pytest-trio",
-        "pypa/packaging",
-        "pytest-dev/pytest-rerunfailures",
-        "pytest-dev/pytest-cov",
-        "pytest-dev/pytest-twisted",
-        "The-Compiler/pytest-xvfb",
-        "actions/checkout",
-        "pytest-dev/pytest-html",
-        "agronholm/anyio",
-        "python-trio/sphinxcontrib-trio",
-        "codecov/codecov-action",
-        "asmeurer/pytest-flakes",
-        "pypa/gh-action-pypi-publish",
-        "s0undt3ch/pluggy",
-        "softprops/action-gh-release",
-        "Teemu/pytest-sugar",
-        "tartley/colorama",
-        "asottile/pygments-pytest",
-        "actions/download-artifact",
-        "pallets/pallets-sphinx-themes",
-        "twisted/twisted",
-        "pytest-dev/iniconfig",
-        "peter-evans/create-pull-request",
-        "actions/setup-python",
-        "python-trio/exceptiongroup",
-        "missinglinkelectronics/sphinxcontrib-svg2pdfconverter",
-        "sphinx-doc/sphinx",
-        "actions/cache"
-      ],
-      "description": "The pytest framework makes it easy to write small tests, yet scales to support complex functional testing",
-      "disabled": false,
-      "forks": 2480,
-      "full_name": "pytest-dev/pytest",
-      "html_url": "https://github.com/pytest-dev/pytest",
-      "language": "Python",
-      "master_branch": null,
-      "name": "pytest",
-      "open_issues": 853,
-      "owner_id": 8897583,
-      "owner_name": "pytest-dev",
-      "project_id": 37489525,
-      "project_license": "MIT License",
-      "pushed_at": "2024-04-03T22:24:34Z",
-      "releases": [
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.1.1",
-          "name": "8.1.1",
-          "tag_name": "8.1.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.1.0",
-          "name": "8.1.0",
-          "tag_name": "8.1.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.0.2",
-          "name": "8.0.2",
-          "tag_name": "8.0.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.0.1",
-          "name": "8.0.1",
-          "tag_name": "8.0.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.0.0",
-          "name": "pytest 8.0.0 (2024-01-27)",
-          "tag_name": "8.0.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.0.0rc2",
-          "name": "8.0.0rc2",
-          "tag_name": "8.0.0rc2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/8.0.0rc1",
-          "name": "pytest 8.0.0rc1 (2023-12-30)",
-          "tag_name": "8.0.0rc1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.4.4",
-          "name": "pytest 7.4.4 (2023-12-31)",
-          "tag_name": "7.4.4"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/v7.4.3",
-          "name": "pytest 7.4.3 (2023-10-24)",
-          "tag_name": "v7.4.3"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.4.2",
-          "name": "pytest 7.4.2 (2023-09-07)",
-          "tag_name": "7.4.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.4.1",
-          "name": "pytest 7.4.1 (2023-09-02)",
-          "tag_name": "7.4.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.4.0",
-          "name": null,
-          "tag_name": "7.4.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.3.2",
-          "name": null,
-          "tag_name": "7.3.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.3.1",
-          "name": null,
-          "tag_name": "7.3.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.3.0",
-          "name": null,
-          "tag_name": "7.3.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.2.2",
-          "name": null,
-          "tag_name": "7.2.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.2.1",
-          "name": null,
-          "tag_name": "7.2.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.2.0",
-          "name": null,
-          "tag_name": "7.2.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.1.3",
-          "name": null,
-          "tag_name": "7.1.3"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.1.2",
-          "name": null,
-          "tag_name": "7.1.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.1.1",
-          "name": null,
-          "tag_name": "7.1.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.1.0",
-          "name": "7.1.0",
-          "tag_name": "7.1.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.0.1",
-          "name": "7.0.1",
-          "tag_name": "7.0.1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.0.0",
-          "name": null,
-          "tag_name": "7.0.0"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/7.0.0rc1",
-          "name": null,
-          "tag_name": "7.0.0rc1"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/6.2.5",
-          "name": null,
-          "tag_name": "6.2.5"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/6.2.4",
-          "name": null,
-          "tag_name": "6.2.4"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/6.2.3",
-          "name": null,
-          "tag_name": "6.2.3"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/6.2.2",
-          "name": null,
-          "tag_name": "6.2.2"
-        },
-        {
-          "html_url": "https://github.com/pytest-dev/pytest/releases/tag/6.2.1",
-          "name": null,
-          "tag_name": "6.2.1"
-        }
-      ],
-      "stars": 11275,
-      "updated_at": "2024-04-05T03:18:42Z",
-      "watchers": 11275
+  // Event listener to handle search on pressing Enter key
+  $(document).on('keypress', '#searchInput', function(e) {
+    if (e.which === 13) { // Check if Enter key is pressed
+      searchData(); // Call the searchData function
+      return false; // Prevent form submission
     }
-  ];
+  });
 
-  renderRepositoryInfo(testData);
+  // Call searchData function when the DOM content is loaded
+  $(document).ready(function() {
+    searchData();
+  });
+
 </script>
 
+<script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            // Extract query parameters from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyword = urlParams.get('query');
+            const language = urlParams.get('language');
+            const license = urlParams.get('license');
+            const category = urlParams.get('category');
+
+            // Set input field values and select dropdowns based on query parameters
+            document.getElementById('searchInput').value = keyword;
+            document.getElementById('Language').value = language;
+            document.getElementById('License').value = license;
+            document.getElementById('Category').value = category;
+        });
+    </script>
+
 </body>
-</html>>
+</html>
+
+
