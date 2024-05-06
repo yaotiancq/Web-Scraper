@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <title>Home Page</title>
     <style>
         body {
@@ -15,12 +16,11 @@
             flex-direction: column; /* Stack elements vertically */
         }
 
-
         /* Grey bar on the top*/
         .grey-bar {
-            background-color: #f2f2f2;
-            height: 40px;
             width: 100%;
+            height: 50px;
+            background-color: #444444;
             position: fixed;
             top: 0;
             left: 0;
@@ -29,15 +29,15 @@
             align-items: center;
             justify-content: flex-start;
             padding-left: 20px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         /* Web Scrapper button style */
         .web-scraper-button {
             background-color: transparent;
             border: none;
-            color: #333;
-            font-size: 20px;
+            color: white;
+            font-size: 28px;
             cursor: pointer;
             text-decoration: none;
             font-family: "Trebuchet MS", serif; /* Set font family */
@@ -56,28 +56,41 @@
 
         /* Search bar */
         input[type="text"] {
-        justify-content: center;
+            justify-content: center;
             padding: 15px;
             width: 600px;
             font-size: 24px;
-            border: 3px solid #ccc;
+            border: 5px solid darkgray;
+            color: gray;
             border-radius: 50px;
-            font-weight: bold; /* Set font weight to bold */
+            padding-right: 60px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-button {
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            outline: none;
+            color: gray; 
+            padding-right: 20px;
+            font-size: 28px; 
         }
 
         /* Dropdown wrapper */
         .dropdown-wrapper {
             display: flex;
             justify-content: center;
-            margin-top: 20px; /* Add margin at the top */
+            margin-top: 30px; /* Add margin at the top */
         }
 
         /* Dropdown style */
         select {
             width: 200px;
             padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
+            font-size: 18px;
+            border: 3px solid darkgray;
+            color: gray;
             border-radius: 5px;
             margin-bottom: 5px; /* Add some margin between dropdowns */
             margin-left: 25px; /* Add horizontal margin */
@@ -88,17 +101,19 @@
         /* Compare button style */
         .compare-button {
             position: fixed;
-            top: 70px;
+            top: 100px;
             right: 100px;
-            padding: 15px 50px;
-            font-size: 32px;
+            padding: 10px 30px;
+            font-size: 28px;
             border: 4px solid grey;
             color: grey;
             border-radius: 50px;
             text-decoration: none;
             cursor: pointer;
-            font-weight: bold; /* Set font weight to bold */
+            font-weight: bold;
+            font-style: italic;
             font-family: "Trebuchet MS", serif; /* Set font family */
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.3);
         }
 
         /* Random text transform */
@@ -114,18 +129,22 @@
 </head>
 <body>
 
-
         <header>
-            <img src="../static/logo.png" alt="Logo" width="250px">
+            <img src="../static/logo.png" alt="Logo" width="300px">
         </header>
 
         <br>
         <form id="searchForm" onsubmit="submitForm(); return false;">
-            <input id="searchInput" type="text" name="query" placeholder="Enter search keyword">
+            <div style="position: relative; display: flex; align-items: center;">
+                <input id="searchInput" type="text" name="query" placeholder="Enter search keyword" style="padding-right: 40px;">
+                <button type="submit" class="search-button" style="position: absolute; right: 0; top: 0; height: 100%; border: none; background: none;">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
         </form>
 
         <div class="grey-bar">
-            <a href="/" class="web-scraper-button">Web Scraper</a>
+            <a href="home.html" class="web-scraper-button">GitHub Web Scraper</a>
         </div>
 
         <br>
@@ -134,14 +153,14 @@
             <div class="dropdown-wrapper">
                 <!-- Language dropdown -->
                 <select id="Language">
-                    <option value="" disabled selected>Select Language</option>
+                    <option value="">Select Language</option>
                     <option value="C">C</option>
                     <option value="C++">C++</option>
                 </select>
 
                 <!-- License dropdown -->
                 <select id="License">
-                    <option value="" disabled selected>Select License</option>
+                    <option value="">Select License</option>
                     <option value="MIT">MIT</option>
                     <option value="GPL">GPL</option>
                     <option value="Apache">Apache</option>
@@ -150,11 +169,10 @@
 
                 <!-- Category dropdown -->
                 <select id="Category">
-                    <option value="" disabled selected>Select Category</option>
+                    <option value="">Select Category</option>
                     <option value="Recent Updated">Recent Updated</option>
                     <option value="Most Popular">Most Popular</option>
-                    <option value="Without Dependency">Without Dependency</option>
-                    <option value="TBD">TBD</option>
+                    <option value="Least Dependencies">Least Dependencies</option>
                 </select>
             </div>
 
@@ -163,40 +181,37 @@
         </div>
 
         <script>
-        document.getElementById("searchInput").addEventListener("keypress", function(event) {
+            document.addEventListener("keypress", function(event) {
                 if (event.key === "Enter") {
                     event.preventDefault(); // Prevent the default form submission
                     submitForm(); // Submit the form
                 }
             });
 
-             function submitForm() {
-            var keyword = document.getElementById("searchInput").value;
-            var language = document.getElementById("Language").value;
-            var license = document.getElementById("License").value;
-            var category = document.getElementById("Category").value;
+            function submitForm() {
+                var keyword = document.getElementById("searchInput").value;
+                var language = document.getElementById("Language").value;
+                var license = document.getElementById("License").value;
+                var category = document.getElementById("Category").value;
 
-            var queryParams = new URLSearchParams({
-                query: keyword,
-                language: language,
-                license: license,
-                category: category
+                var queryParams = new URLSearchParams({
+                    query: keyword,
+                    language: language,
+                    license: license,
+                    category: category
+                });
+
+                window.location.href = './list_page.html?' + queryParams.toString();
+            }
+
+            document.addEventListener("DOMContentLoaded", function(event) {
+                document.getElementById("searchInput").addEventListener("keypress", function(event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        submitForm();
+                    }
+                });
             });
-
-            window.location.href = './list_page.html?' + queryParams.toString();
-        }
-
-        document.addEventListener("DOMContentLoaded", function(event) {
-            document.getElementById("searchInput").addEventListener("keypress", function(event) {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    submitForm();
-                }
-            });
-        });
         </script>
-
-
-
 </body>
 </html>

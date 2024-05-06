@@ -19,7 +19,7 @@ def search_repository():
         project_license = "General Public License"
     category = request.args.get('category')
     page_size = int(request.args.get('page_size', 20))
-    page_num = int(request.args.get('page_num', 1))
+    page_num = int(request.args.get('page', 1))
 
     connection = DatabaseManager('3.139.100.241', 27017)
     connection.connect_mongo("test_database", "test_collection")
