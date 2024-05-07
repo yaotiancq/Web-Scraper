@@ -172,6 +172,13 @@
       margin: 0 5px;
     }
 
+    #paginationContainer {
+      display: flex;
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 10px 0; 
+    }
+
     /* Pagination style */
     .pagination {
       display: flex;
@@ -179,17 +186,26 @@
       margin-top: 20px;
     }
     .pagination-button {
-      margin: 0 5px;
-      padding: 5px 10px;
+      margin: 0 8px;
+      padding: 8px 12px;
       background-color: #ccc;
       border: none;
       border-radius: 3px;
       text-decoration: none;
       cursor: pointer;
+      font-size: 16px;
     }
     .pagination-button.active {
       background-color: #007bff;
       color: #fff;
+    }
+    #itemsPerPage {
+      padding: 8px 12px; 
+      border-radius: 3px; 
+      background-color: #ccc; 
+      border: none;
+      font-size: 16px; 
+      cursor: pointer;
     }
   </style>
 </head>
@@ -233,15 +249,21 @@
     </div>
   </div>
   <div id="repositoryInfo"></div>
-  <div id="pagination" class="pagination"></div>
-  <div id="pageInfo" class="page-info"></div>
+  <div id="paginationContainer" style="display: flex; justify-content: space-between; align-items: center;">
+    <div id="pagination"></div>
+    <select id="itemsPerPage" onchange="updateParameters(1)" style="margin-left: 20px;">
+        <option value="20" selected>20 per page</option>
+        <option value="30">30 per page</option>
+        <option value="50">50 per page</option>
+    </select>
+  </div>
 </div>
 
 <script>
   // Function to fetch data from the backend with filters
-  async function fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber) {
+  async function fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber, pageSize) {
     try {
-      const requestData = { keyword: keyword, page: pageNumber };
+      const requestData = { keyword: keyword, page: pageNumber, page_size: pageSize };
       if (language) requestData.language = language;
       if (license) requestData.license = license;
       if (category) requestData.category = category;
@@ -298,31 +320,44 @@
 <script>
   // Function to render pagination
   function renderPagination(dataLength) {
-    const totalPages = Math.ceil(dataLength / 20);
+    const itemsPerPage = parseInt(document.getElementById('itemsPerPage').value);
+    const totalPages = Math.ceil(dataLength / itemsPerPage);
+    const currentPage = getCurrentPage()[0];
     let paginationHTML = '';
-    const currentPage = getCurrentPage();
-    for (let i = 1; i <= totalPages; i++) {
-      if (i === currentPage) {
-        paginationHTML += `<button class="pagination-button active" onclick="updateParameters(${i})">${i}</button>`;
-      } else {
-        paginationHTML += `<button class="pagination-button" onclick="updateParameters(${i})">${i}</button>`;
-      }
+    const range = 2; // how many pages we need before and after the current page
+
+    for (let i = Math.max(1, currentPage - range); i <= Math.min(totalPages, currentPage + range); i++) {
+        if (i === currentPage) {
+            paginationHTML += `<button class="pagination-button active" onclick="updateParameters(${i})">${i}</button>`;
+        } else {
+            paginationHTML += `<button class="pagination-button" onclick="updateParameters(${i})">${i}</button>`;
+        }
     }
-    const paginationElement = document.getElementById('pagination');
-    paginationElement.innerHTML = paginationHTML;
+
+    // add the first and last page
+    if (currentPage > range + 1) {
+        paginationHTML = `<button class="pagination-button" onclick="updateParameters(1)">1</button> ... ` + paginationHTML;
+    }
+    if (currentPage < totalPages - range) {
+        paginationHTML += ` ... <button class="pagination-button" onclick="updateParameters(${totalPages})">${totalPages}</button>`;
+    }
+
+    document.getElementById('pagination').innerHTML = paginationHTML;
   }
 
-  // Function to get current page number
+  // Function to get current page info
   function getCurrentPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const page = parseInt(urlParams.get('page')) || 1;
-    return page;
+    const pageSize = parseInt(urlParams.get('pageSize')) || 20;
+    return [page, pageSize];
   }
 
   // Function to go to a specific page
-  function goToPage(pageNumber, keyword, language, license, category) {
+  function goToPage(pageNumber, pageSize, keyword, language, license, category) {
     const url = new URL(window.location.href);
     url.searchParams.set('page', pageNumber);
+    url.searchParams.set('pageSize', pageSize);
     url.searchParams.set('query', keyword);
     url.searchParams.set('language', language);
     url.searchParams.set('license', license);
@@ -336,7 +371,8 @@
     const language = $('#Language').val();
     const license = $('#License').val();
     const category = $('#Category').val();
-    goToPage(pageNumber, keyword, language, license, category);
+    const pageSize = $('#itemsPerPage').val();
+    goToPage(pageNumber, pageSize, keyword, language, license, category);
   }
 
   // Function to handle search functionality
@@ -347,8 +383,8 @@
     const category = $('#Category').val();
     
     try {
-      const pageNumber = getCurrentPage(); // Get current page number
-      const [data, totalCount] = await fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber);
+      const [pageNumber, pageSize] = getCurrentPage(); // Get current page info
+      const [data, totalCount] = await fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber, pageSize);
       renderRepositoryInfo(data);
       renderPagination(totalCount);
     } catch (error) {
@@ -379,16 +415,18 @@
         document.addEventListener("DOMContentLoaded", function(event) {
             // Extract query parameters from URL
             const urlParams = new URLSearchParams(window.location.search);
-            const keyword = urlParams.get('query');
-            const language = urlParams.get('language');
-            const license = urlParams.get('license');
-            const category = urlParams.get('category');
+            const keyword = urlParams.get('query') || '';
+            const language = urlParams.get('language') || '';
+            const license = urlParams.get('license') || '';
+            const category = urlParams.get('category') || '';
+            const pageSize = urlParams.get('pageSize') || 20;
 
             // Set input field values and select dropdowns based on query parameters
             document.getElementById('searchInput').value = keyword;
             document.getElementById('Language').value = language;
             document.getElementById('License').value = license;
             document.getElementById('Category').value = category;
+            document.getElementById('itemsPerPage').value = pageSize;
         });
     </script>
 
