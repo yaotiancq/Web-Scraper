@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Web Scraper</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
     html,
     body {
@@ -12,6 +13,9 @@
       height: 100%;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
     }
     #main {
       height: 100%;
@@ -29,9 +33,10 @@
       line-height: 50px;
       padding-left: 20px;
       font-size: 28px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      font-family: "Trebuchet MS", serif;
+      font-weight: bold;
+      font-style: italic;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
     }
     .back-arrow {
       position: absolute;
@@ -43,14 +48,28 @@
     }
     .search-bar {
       text-align: center;
+      margin-top: 20px;
       margin-bottom: 20px;
     }
     .search-bar input[type="text"] {
-      width: 800px;
-      height: 30px;
-      padding: 5px;
-      font-size: 16px;
+      justify-content: center;
+      padding: 15px;
+      width: 600px;
+      font-size: 24px;
+      border: 5px solid darkgray;
+      color: gray;
       border-radius: 50px;
+      padding-right: 60px;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .search-button {
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+      outline: none;
+      color: gray; 
+      padding-right: 20px;
+      font-size: 28px; 
     }
     .dropdown-container {
       display: flex;
@@ -59,36 +78,27 @@
     }
     .dropdown-wrapper {
       margin-top: 20px;
+      margin-bottom: 20px;
     }
     .dropdown-wrapper select {
-      width: 150px;
+      width: 200px;
       padding: 10px;
-      font-size: 12px;
-      border: 0px solid #ccc;
+      font-size: 18px;
+      border: 3px solid darkgray;
+      color: gray;
       border-radius: 5px;
-      margin-bottom: 30px;
-      margin-left: 50px;
-      margin-right: 50px;
-    }
-    .compare-button {
-      position: absolute;
-      top: 60px;
-      right: 100px;
-      padding: 10px 20px;
-      font-size: 28px;
-      border: 0px solid grey;
-      color: grey;
-      border-radius: 50px;
-      text-decoration: none;
-      cursor: pointer;
-      font-weight: bold;
+      margin-bottom: 5px; /* Add some margin between dropdowns */
+      margin-left: 25px; /* Add horizontal margin */
+      margin-right: 25px; /* Add horizontal margin */
+      font-family: "Trebuchet MS", serif; /* Set font family */
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
     }
     /* Repository container style */
     #repositoryInfo {
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 100%;
+      width: 80%;
     }
 
     .repository-container {
@@ -112,27 +122,29 @@
 
     /* Repository left style */
     .repository-left {
-      width: calc(33.33% - 50px);
+      width: calc(40%);
+      margin-left: 20px;
       margin-right: 20px;
       text-align: left;
     }
 
     /* Repository mid style */
     .repository-mid {
-      width: calc(33.33% - 100px);
+      width: calc(20%);
       text-align: center;
     }
 
     /* Repository right style */
     .repository-right {
-      width: calc(33.33% - 50px);
+      width: calc(20%);
       margin-left: 20px;
+      margin-right: 20px;
       text-align: right;
     }
 
     /* Repository name link style */
     .repo-link {
-      color: blue;
+      color: darkblue;
       font-size: 30px;
       text-decoration: underline;
       cursor: pointer;
@@ -151,10 +163,14 @@
       font-size: 20px;
     }
 
+    .repository-right ul {
+      list-style-type: none; 
+      padding-left: 0;
+    }
+
     .space {
       margin: 0 5px;
     }
-
 
     /* Pagination style */
     .pagination {
@@ -181,24 +197,27 @@
 <div class="top-bar">
   <span onclick="window.location.href='home.html';" style="cursor:pointer;">GitHub Web Scraper</span>
 </div>
-<div class="back-arrow" onclick="history.back();"><i class="fas fa-arrow-left"></i></div>
+<div class="back-arrow" onclick="window.location.href='home.html';"><i class="fas fa-arrow-left"></i></div>
 <div id="main">
   <div class="search-bar">
-    <form id="searchForm" action="/search" method="GET">
-      <input id="searchInput" type="text" name="keyword" placeholder="Enter search keyword...">
-    </form>
+      <div style="position: relative; display: flex; align-items: center;">
+          <input id="searchInput" type="text" placeholder="Enter search keyword">
+              <button onclick="updateParameters(1)" class="search-button" style="position: absolute; right: 0; top: 0; height: 100%; border: none; background: none;">
+                  <i class="fas fa-search"></i>
+              </button>
+      </div>
   </div>
   <div class="dropdown-container">
     <div class="dropdown-wrapper">
       <!-- Language dropdown -->
       <select id="Language">
-        <option value="" disabled selected>Select Language</option>
+        <option value="">Select Language</option>
         <option value="C">C</option>
         <option value="C++">C++</option>
       </select>
       <!-- License dropdown -->
       <select id="License">
-        <option value="" disabled selected>Select License</option>
+        <option value="">Select License</option>
         <option value="MIT">MIT</option>
         <option value="GPL">GPL</option>
         <option value="Apache">Apache</option>
@@ -206,11 +225,10 @@
       </select>
       <!-- Category dropdown -->
       <select id="Category">
-        <option value="" disabled selected>Select Category</option>
+        <option value="">Select Category</option>
         <option value="Recent Updated">Recent Updated</option>
         <option value="Most Popular">Most Popular</option>
-        <option value="Without Dependency">Without Dependency</option>
-        <option value="TBD">TBD</option>
+        <option value="Least Dependencies">Least Dependencies</option>
       </select>
     </div>
   </div>
@@ -253,19 +271,19 @@
       repositoryContainer.classList.add('repository-container');
       repositoryContainer.innerHTML = `
         <div class = "repository-left">
-          <p class = "metadata">${repository.owner_name || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.updated || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.releases[0] ? repository.releases[0].name : 'N/A'}</p>
+          <p class = "metadata">${repository.owner_name || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.updated_at || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.releases[0] ? repository.releases[0].name : 'No Release'}</p>
           <h2><a href = "${repository.html_url}" class = "repo-link" target = "_blank">${repository.name}</a></h2>
           <p>${repository.description || 'N/A'}</p>
-          <p class = "metadata">${repository.language || 'N/A'}<span class = "space"></span> • <span class="space"></span> Issues: ${repository.open_issues || 'N/A'}<span class = "space"></span> • <span class = "space"></span>${repository.updated_at}</p>
+          <p class = "metadata">${repository.language || 'N/A'}<span class = "space"></span> • <span class="space"></span> Issues: ${repository.open_issues || 'No Issue'}<span class = "space"></span> • <span class = "space"></span>${repository.created_at}</p>
         </div>
 
         <div class = "repository-mid">
-          <p class = "metadata">Stars: ${repository.stars || 'N/A'} <span class = "space"></span> • <span class = "space"></span> Watchers: ${repository.watchers || 'N/A'}</p>
+          <p class = "metadata">Stars: ${repository.stars || '0'} <span class = "space"></span> • <span class = "space"></span> Watchers: ${repository.watchers || '0'}</p>
           <p class = "license">${repository.project_license || 'N/A'}</p>
         </div>
 
         <div class="repository-right">
-          <p class="dependency">Dependency</p>
+          <p class="dependency">Dependencies</p>
           <ul>
             ${[...new Set(repository.dependency_project_id.map(dependency => dependency.full_name))].slice(0, 4).map(dependency => `<li>${dependency}</li>`).join('')}
           </ul>
@@ -279,54 +297,47 @@
 
 <script>
   // Function to render pagination
-function renderPagination(dataLength) {
-  const totalPages = Math.ceil(dataLength / 20);
-  let paginationHTML = '';
-  const currentPage = getCurrentPage();
-  for (let i = 1; i <= totalPages; i++) {
-    if (i === currentPage) {
-      paginationHTML += `<button class="pagination-button active" onclick="onPageButtonClick(${i})">${i}</button>`;
-    } else {
-      paginationHTML += `<button class="pagination-button" onclick="onPageButtonClick(${i})">${i}</button>`;
+  function renderPagination(dataLength) {
+    const totalPages = Math.ceil(dataLength / 20);
+    let paginationHTML = '';
+    const currentPage = getCurrentPage();
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === currentPage) {
+        paginationHTML += `<button class="pagination-button active" onclick="updateParameters(${i})">${i}</button>`;
+      } else {
+        paginationHTML += `<button class="pagination-button" onclick="updateParameters(${i})">${i}</button>`;
+      }
     }
+    const paginationElement = document.getElementById('pagination');
+    paginationElement.innerHTML = paginationHTML;
   }
-  const paginationElement = document.getElementById('pagination');
-  paginationElement.innerHTML = paginationHTML;
-}
 
-// Function to get current page number
-function getCurrentPage() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const page = parseInt(urlParams.get('page')) || 1;
-  return page;
-}
+  // Function to get current page number
+  function getCurrentPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = parseInt(urlParams.get('page')) || 1;
+    return page;
+  }
 
-// Function to go to a specific page
-function goToPage(pageNumber, keyword, language, license, category) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('page', pageNumber);
-  const newUrl = url.toString();
-  window.location.href = newUrl;
-}
+  // Function to go to a specific page
+  function goToPage(pageNumber, keyword, language, license, category) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', pageNumber);
+    url.searchParams.set('query', keyword);
+    url.searchParams.set('language', language);
+    url.searchParams.set('license', license);
+    url.searchParams.set('category', category);
+    const newUrl = url.toString();
+    window.location.href = newUrl;
+  }
 
-
-// Call this function when clicking pagination button
-function onPageButtonClick(pageNumber) {
-  const keyword = $('#searchInput').val();
-  const language = $('#Language').val();
-  const license = $('#License').val();
-  const category = $('#Category').val();
-  goToPage(pageNumber, keyword, language, license, category);
-}
-
-
-  // Function to get data for a specific page
-  //function getDataForPage(data, pageNumber) {
-    //const itemsPerPage = 20;
-    //const startIndex = (pageNumber - 1) * itemsPerPage;
-    //const endIndex = startIndex + itemsPerPage;
-    //return data.slice(startIndex, endIndex);
-  //}
+  function updateParameters(pageNumber) {
+    const keyword = $('#searchInput').val();
+    const language = $('#Language').val();
+    const license = $('#License').val();
+    const category = $('#Category').val();
+    goToPage(pageNumber, keyword, language, license, category);
+  }
 
   // Function to handle search functionality
   async function searchData() {
@@ -334,16 +345,10 @@ function onPageButtonClick(pageNumber) {
     const language = $('#Language').val();
     const license = $('#License').val();
     const category = $('#Category').val();
-    if (!keyword) {
-      $('#repositoryInfo').empty(); // delete search result
-      $('#pagination').empty(); // delete page button
-      $('#pageInfo').text(''); // delete page information
-      return;
-    }
+    
     try {
       const pageNumber = getCurrentPage(); // Get current page number
       const [data, totalCount] = await fetchDataFromBackendWithFilters(keyword, language, license, category, pageNumber);
-      //const filteredData = getDataForPage(data, pageNumber);
       renderRepositoryInfo(data);
       renderPagination(totalCount);
     } catch (error) {
@@ -355,8 +360,9 @@ function onPageButtonClick(pageNumber) {
   }
 
   // Event listener to handle search on pressing Enter key
-  $(document).on('keypress', '#searchInput', function(e) {
+  $(document).on('keypress', function(e) {
     if (e.which === 13) { // Check if Enter key is pressed
+      updateParameters(1);
       searchData(); // Call the searchData function
       return false; // Prevent form submission
     }
