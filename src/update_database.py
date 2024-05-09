@@ -68,12 +68,11 @@ def search_and_save(query):
                 # update existing data and continue
                 connection._update_target_field(query, assembled_result)
                 print(f"Update repository info: {cur}")
-                continue
-
-            # Insert the assembled_result into DB
-            connection.insert([assembled_result])
-            print(f"Insert repo info: {cur}")
-            logging.info(f"Insert repository info: {cur}")
+            else:
+                # Insert the assembled_result into DB
+                connection.insert([assembled_result])
+                print(f"Insert repo info: {cur}")
+                logging.info(f"Insert repository info: {cur}")
 
             # Add the dependencies of the current repo to wait-list
             for dependency in assembled_result['dependency_project_id']:

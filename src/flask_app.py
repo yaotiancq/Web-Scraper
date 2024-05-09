@@ -58,11 +58,16 @@ def get_dependency_by_level(full_name, connection):
         return None
     root = result[0]
 
+    visited = set()
     q = [root]
     while q:
         # Collect dependencies of all nodes in the current layer
         temp = set()
         for item in q:
+            if item['full_name'] in visited:
+                continue
+            visited.add(item['full_name'])
+
             if 'dependency_project_id' in item:
                 for dependency in item['dependency_project_id']:
                     temp.add(dependency['full_name'])
@@ -83,6 +88,7 @@ def get_dependency_by_level(full_name, connection):
                     for dependency in item['dependency_project_id']
                     if dependency['full_name'] in dependencies_dict
                 ]
+
                 next_level.extend(item['children'])
 
         q = next_level
