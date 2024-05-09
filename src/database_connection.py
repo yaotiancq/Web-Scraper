@@ -134,6 +134,7 @@ class DatabaseManager:
 
     def search_bar(self, keyword=None, language=None, project_license=None, limit_num=-1, category=None, sort_order=-1,
                    page=1, entryNum=10):
+        
         """Search the collection based on the keyword, language, license, and category.
         It returns a list of dictionaries, also returns the total number of documents.
         If num is provided, it will return the number of documents specified by num.
@@ -141,8 +142,8 @@ class DatabaseManager:
         If page is provided, it will return the documents in that page."""
 
         # Remove non alpha-numerical characters from the keyword
-        keyword = preprocess_text(keyword)
-        
+        keywords = [preprocess_text(keyword) for keyword in keyword.split()]
+        print(keywords)
         query = {}
         entry_per_page = entryNum
         skip_row = (page - 1) * entry_per_page
@@ -150,12 +151,20 @@ class DatabaseManager:
             query['language'] = language
         if project_license:
             query['project_license'] = {"$regex": project_license, "$options": "i"}
-        if keyword:
-            query['$or'] = [
-                {"name": {"$regex": keyword, "$options": "i"}},
-                {"description": {"$regex": keyword, "$options": "i"}},
-                {"owner_name": {"$regex": keyword, "$options": "i"}}
-            ]
+        #if keyword:
+        #    query['$or'] = [
+        #        {"name": {"$regex": keyword, "$options": "i"}},
+        #        {"description": {"$regex": keyword, "$options": "i"}},
+        #        {"owner_name": {"$regex": keyword, "$options": "i"}}
+        #    ]
+        if keywords:
+            query['$or'] = []
+            for keyword in keywords:
+                query['$or'].extend([
+                    {"name": {"$regex": keyword, "$options": "i"}},
+                    {"description": {"$regex": keyword, "$options": "i"}},
+                    {"owner_name": {"$regex": keyword, "$options": "i"}}
+                ])
         cnt = self._count(query)
         if category:
             if category == "Recent Updated":
@@ -171,6 +180,15 @@ class DatabaseManager:
             ans = self.find(keyword=keyword, d=query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
                   :entry_per_page]
         return ans, cnt
+    
+    def create_text_indexes(self):
+        """Create text indexes on the 'name', 'description', and 'owner_name' fields."""
+        self.collection.create_index([
+            ("name", "text"),
+            ("description", "text"),
+            ("owner_name", "text")
+        ])
+    
         
 def insertion_test():
     data=[{'project_id': 10000, 
@@ -204,6 +222,7 @@ def insertion_test():
     db=DatabaseManager('3.139.100.241', 27017)
     db.connect_mongo("just_for_test", "just_for_test")
     db.insert(data)
+    db.create_text_indexes()
 
 def search_test():
 
@@ -218,18 +237,19 @@ def search_test():
     # for i in range(len(res)):
     #     print(res[i],'\t', (page-1)*entryNum+i+1,'/',total)
 
-    # fuzzy search test
-    print(connection.search_bar(keyword='dj',category='stars',page=1, entryNum=10)[0])
+    # fuzzy search testdb.collection.createIndex({name: "text", description: "text", owner_name: "text"})
+    #connection.collection.createIndex({"name": "text", "description": "text", "owner_name": "text"})
+    print(connection.search_bar(keyword='tensor',language=None,project_license= None, limit_num=-1, category=None, sort_order=-1, page=1, entryNum=20)[0])
     
 
 if __name__ == "__main__":
-    # search_test()
-
-    connection = DatabaseManager('3.139.100.241', 27017)
-    connection.connect_mongo("test_database", "test_collection")
-    print(connection._count({}))
+    search_test()
+    #insertion_test
+    #connection = DatabaseManager('3.139.100.241', 27017)
+    #connection.connect_mongo("test_database", "test_collection")
+    #print(connection._count({}))
     # connection.drop()
 
-    # query = {"full_name": "django/django"}
-    # result = list(connection._find(query).limit(20))
-    # print(result)
+    #query = {"full_name": "django/django"}
+    #result = list(connection._find(query).limit(20))
+    #print(result)
