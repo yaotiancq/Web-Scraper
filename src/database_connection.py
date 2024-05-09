@@ -31,13 +31,42 @@ class DatabaseManager:
         It returns a cursor object. You need to iterate over the cursor to get the documents."""
         return self.collection.find(query)
     
-    def find(self, d=None, limit=-1, sort_by=None, sort_order=-1, skip=0, sort_by_array_size=None):
+    def find(self, keyword=None, d=None, limit=-1, sort_by=None, sort_order=-1, skip=0, sort_by_array_size=None):
         """Find documents in the collection, if query is not provided, it will return all documents.
         It returns a list of dictionaries."""
         pipeline = []
 
         if d:
             pipeline.append({"$match": d})
+
+        pipeline.append({
+            "$addFields": {
+                "nameMatch": {"$regexMatch": {"input": "$name", "regex": keyword, "options": "i"}},
+                "descriptionMatch": {"$regexMatch": {"input": "$description", "regex": keyword, "options": "i"}},
+                "ownerNameMatch": {"$regexMatch": {"input": "$owner_name", "regex": keyword, "options": "i"}},
+            }
+        })
+
+        pipeline.append({
+            "$addFields": {
+                "sortPriority": {
+                    "$cond": {
+                        "if": "$nameMatch", "then": 1,
+                        "else": {
+                            "$cond": {
+                                "if": "$descriptionMatch", "then": 2,
+                                "else": {
+                                    "$cond": {
+                                        "if": "$ownerNameMatch", "then": 3,
+                                        "else": 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
 
         # add the size of the sorted field
         if sort_by_array_size:
@@ -52,6 +81,8 @@ class DatabaseManager:
             pipeline.append({"$sort": {sort_by: sort_order}})
         elif sort_by_array_size:
             pipeline.append({"$sort": {"count_for_sort": sort_order}})
+        else:
+            pipeline.append({"$sort": {"sortPriority": 1}})
 
         # Apply skip and limit
         if skip > 0:
@@ -116,20 +147,24 @@ class DatabaseManager:
         if project_license:
             query['project_license'] = {"$regex": project_license, "$options": "i"}
         if keyword:
-            query['full_name'] = {"$regex": keyword, "$options": "i"}
+            query['$or'] = [
+                {"name": {"$regex": keyword, "$options": "i"}},
+                {"description": {"$regex": keyword, "$options": "i"}},
+                {"owner_name": {"$regex": keyword, "$options": "i"}}
+            ]
         cnt = self._count(query)
         if category:
             if category == "Recent Updated":
-                ans = self.find(query, sort_by='updated_at', sort_order=-1, limit=limit_num, skip=skip_row)[
+                ans = self.find(keyword=keyword, d=query, sort_by='updated_at', sort_order=-1, limit=limit_num, skip=skip_row)[
                       :entry_per_page]
             elif category == "Most Popular":
-                ans = self.find(query, sort_by='stars', sort_order=-1, limit=limit_num, skip=skip_row)[
+                ans = self.find(keyword=keyword, d=query, sort_by='stars', sort_order=-1, limit=limit_num, skip=skip_row)[
                       :entry_per_page]
             elif category == "Least Dependencies":
-                ans = self.find(query, sort_by_array_size='dependency_project_id', sort_order=1, limit=limit_num,
+                ans = self.find(keyword=keyword, d=query, sort_by_array_size='dependency_project_id', sort_order=1, limit=limit_num,
                                 skip=skip_row)[:entry_per_page]
         else:
-            ans = self.find(query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
+            ans = self.find(keyword=keyword, d=query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
                   :entry_per_page]
         return ans, cnt
         
