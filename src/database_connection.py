@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-
+from preprocess_text import preprocess_text
 
 class DatabaseManager:
     def __init__(self, mongo_host, mongo_port):
@@ -139,6 +139,10 @@ class DatabaseManager:
         If num is provided, it will return the number of documents specified by num.
         If category is provided, it will sort the documents based on the category.
         If page is provided, it will return the documents in that page."""
+
+        # Remove non alpha-numerical characters from the keyword
+        keyword = preprocess_text(keyword)
+        
         query = {}
         entry_per_page = entryNum
         skip_row = (page - 1) * entry_per_page
