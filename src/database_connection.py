@@ -31,21 +31,23 @@ class DatabaseManager:
         It returns a cursor object. You need to iterate over the cursor to get the documents."""
         return self.collection.find(query)
     
-    def find(self, keyword=None, d=None, limit=-1, sort_by=None, sort_order=-1, skip=0, sort_by_array_size=None):
+    def find(self, keywords=None, d=None, limit=-1, sort_by=None, sort_order=-1, skip=0, sort_by_array_size=None):
         """Find documents in the collection, if query is not provided, it will return all documents.
         It returns a list of dictionaries."""
         pipeline = []
 
         if d:
             pipeline.append({"$match": d})
-
+        
+        
         pipeline.append({
             "$addFields": {
-                "nameMatch": {"$regexMatch": {"input": "$name", "regex": keyword, "options": "i"}},
-                "descriptionMatch": {"$regexMatch": {"input": "$description", "regex": keyword, "options": "i"}},
-                "ownerNameMatch": {"$regexMatch": {"input": "$owner_name", "regex": keyword, "options": "i"}},
+                "nameMatch": {"$regexMatch": {"input": "$name", "regex": keywords, "options": "i"}},
+                "descriptionMatch": {"$regexMatch": {"input": "$description", "regex": keywords, "options": "i"}},
+                "ownerNameMatch": {"$regexMatch": {"input": "$owner_name", "regex": keywords, "options": "i"}},
             }
         })
+        
 
         pipeline.append({
             "$addFields": {
@@ -151,20 +153,20 @@ class DatabaseManager:
             query['language'] = language
         if project_license:
             query['project_license'] = {"$regex": project_license, "$options": "i"}
-        #if keyword:
-        #    query['$or'] = [
-        #        {"name": {"$regex": keyword, "$options": "i"}},
-        #        {"description": {"$regex": keyword, "$options": "i"}},
-        #        {"owner_name": {"$regex": keyword, "$options": "i"}}
-        #    ]
-        if keywords:
-            query['$or'] = []
-            for keyword in keywords:
-                query['$or'].extend([
-                    {"name": {"$regex": keyword, "$options": "i"}},
-                    {"description": {"$regex": keyword, "$options": "i"}},
-                    {"owner_name": {"$regex": keyword, "$options": "i"}}
-                ])
+        if keyword:
+            query['$or'] = [
+                {"name": {"$regex": '|'.join(keywords), "$options": "i"}},
+                {"description": {"$regex": '|'.join(keywords), "$options": "i"}},
+                {"owner_name": {"$regex": '|'.join(keywords), "$options": "i"}}
+            ]
+        #if keywords:
+        #    query['$or'] = []
+        #    for keyword in keywords:
+        #        query['$or'].extend([
+        #            {"name": {"$regex": keyword, "$options": "i"}},
+        #            {"description": {"$regex": keyword, "$options": "i"}},
+        #            {"owner_name": {"$regex": keyword, "$options": "i"}}
+        #        ])
         cnt = self._count(query)
         if category:
             if category == "Recent Updated":
@@ -177,7 +179,7 @@ class DatabaseManager:
                 ans = self.find(keyword=keyword, d=query, sort_by_array_size='dependency_project_id', sort_order=1, limit=limit_num,
                                 skip=skip_row)[:entry_per_page]
         else:
-            ans = self.find(keyword=keyword, d=query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
+            ans = self.find(keywords=keyword, d=query, sort_by=category, sort_order=sort_order, limit=limit_num, skip=skip_row)[
                   :entry_per_page]
         return ans, cnt
     
@@ -219,14 +221,14 @@ def insertion_test():
            'updated_at': '2024-01-18T09:05:33Z', 'pushed_at': '2021-06-17T17:32:26Z', 
            'created_at': '2020-08T17:32:26Z', 'disabled': False}
            ]
-    db=DatabaseManager('3.139.100.241', 27017)
+    db=DatabaseManager('13.59.153.177', 27017)
     db.connect_mongo("just_for_test", "just_for_test")
     db.insert(data)
     db.create_text_indexes()
 
 def search_test():
 
-    connection = DatabaseManager('3.139.100.241', 27017)
+    connection = DatabaseManager('13.59.153.177', 27017)
     connection.connect_mongo("test_database", "test_collection")
 
     # pagaination test
@@ -245,7 +247,7 @@ def search_test():
 if __name__ == "__main__":
     search_test()
     #insertion_test
-    #connection = DatabaseManager('3.139.100.241', 27017)
+    #connection = DatabaseManager('13.59.153.177', 27017)
     #connection.connect_mongo("test_database", "test_collection")
     #print(connection._count({}))
     # connection.drop()
